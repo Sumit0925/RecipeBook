@@ -117,7 +117,7 @@ const RecipeForm = ({
                     ? recipe.ingredients.join("\n")
                     : recipe.ingredients
                 }
-                onChange={(e) => handleChange("ingredients", e.target.value)}
+                onChange={(e) => handleChange("ingredients", e.target.value.split("\n"))}
                 rows={6}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.ingredients ? "border-red-500" : "border-gray-300"

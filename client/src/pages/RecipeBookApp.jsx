@@ -8,7 +8,7 @@ import EmptyState from "@/components/EmptyState";
 
 const initialFormState = {
   name: "",
-  ingredients: "",
+  ingredients: [],
   steps: "",
   image: "",
   cookTime: "",
@@ -56,7 +56,7 @@ const sampleRecipes = [
     steps:
       "1. Cook pasta according to package directions and cool. 2. Chop all vegetables and combine in large bowl. 3. Whisk together olive oil, lemon juice, and oregano. 4. Toss pasta with vegetables and dressing. 5. Add feta cheese and season with salt and pepper. 6. Chill for 1 hour before serving.",
     image:
-      "https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400&h=300&fit=crop",
+      "https://plus.unsplash.com/premium_photo-1705420671923-cc9270c18b34?q=80&w=1171&auto=format&fit=crop",
     cookTime: "20 min",
     servings: "6 people",
     category: "Main Course",
@@ -72,19 +72,48 @@ export default function RecipeBookApp() {
   const [newRecipe, setNewRecipe] = useState(initialFormState);
   const [errors, setErrors] = useState({});
 
-  // Load sample recipes
+  // // Load sample recipes
+  // useEffect(() => {
+  //   setRecipes(sampleRecipes);
+  // }, []);
+
+  //*Load data from localStorage on mount
+
   useEffect(() => {
-    setRecipes(sampleRecipes);
+    const storedRecipes = JSON.parse(localStorage.getItem("recipes")) || [];
+    if(storedRecipes)
+      console.log(storedRecipes.length,"dd")
+    if (storedRecipes && storedRecipes.length > 0) {
+      setRecipes(storedRecipes);
+    } else {
+      setRecipes(sampleRecipes);
+    }
   }, []);
+
+  //*Save data to localStorage when recipes change
+
+  useEffect(() => {
+    localStorage.setItem("recipes", JSON.stringify(recipes));
+  }, [recipes]);
 
   // Validation
   const validateForm = (recipe) => {
     const newErrors = {};
-    if (!recipe.name.trim() ) newErrors.name = "Recipe name is required";
-    if (!recipe.ingredients.trim())
-      newErrors.ingredients = "Ingredients are required";
-    if (!recipe.steps.trim())
+
+    const isEmptyArray = (arr) =>
+      !Array.isArray(arr) ||
+      arr.length === 0 ||
+      arr.some((item) => !item || !item.trim());
+
+    if (!recipe.name?.trim()) newErrors.name = "Recipe name is required";
+
+    if (isEmptyArray(recipe.ingredients))
+      newErrors.ingredients =
+        "Ingredients are required and must be non-empty strings.";
+
+    if (!recipe.steps || !recipe.steps.trim())
       newErrors.steps = "Preparation steps are required";
+
     return newErrors;
   };
 
@@ -98,9 +127,7 @@ export default function RecipeBookApp() {
     const recipe = {
       id: Date.now(),
       ...newRecipe,
-      ingredients: newRecipe.ingredients
-        .split("\n")
-        .filter((ing) => ing.trim()),
+      ingredients: newRecipe.ingredients.filter((ing) => ing.trim()),
       image:
         newRecipe.image ||
         "https://images.unsplash.com/photo-1546548970-71785318a17b?w=400&h=300&fit=crop",
